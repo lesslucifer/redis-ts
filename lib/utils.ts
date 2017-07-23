@@ -21,6 +21,8 @@ export function asBoolean(val: any) {
     if (!isNaN(num)) {
         return num > 0;
     }
+
+    return false;
 }
 
 export function first(array: any[]) {
