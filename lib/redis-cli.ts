@@ -2,33 +2,33 @@ import * as redis from 'redis';
 import * as bb from 'bluebird';
 import * as utils from './utils';
 
-interface ClientConfig extends redis.ClientOpts {
+export interface ClientConfig extends redis.ClientOpts {
 }
 
-type RedisPrimitives = string | number | boolean | Buffer;
+export type RedisPrimitives = string | number | boolean | Buffer;
 
-interface RedisParser<F, T> {
+export interface RedisParser<F, T> {
     (v: F): T
     (v: F): Promise<T>
 }
 
-interface RedisScanResult {
+export interface RedisScanResult {
     cursor: number;
     values: string[];
 }
 
-interface RedisKey {
+export interface RedisKey {
     readonly key: string;
     child(path: string, sep?: string): RedisKeyAny;
     del(): Promise<void>;
 }
 
-interface RedisKeyString extends RedisKey {
+export interface RedisKeyString extends RedisKey {
     get(): Promise<string>
     set(value: RedisPrimitives): Promise<void>;
 }
 
-interface RedisKeySet extends RedisKey {
+export interface RedisKeySet extends RedisKey {
     sadd(...values: RedisPrimitives[]): Promise<number>;
     scard(): Promise<number>;
     sdiff(...keys: (RedisKey | string)[]): Promise<Set<string>>;
@@ -48,7 +48,7 @@ interface RedisKeySet extends RedisKey {
     sunionstore(...keys: (RedisKey | string)[]): Promise<number>;
 }
 
-interface RedisKeyHash extends RedisKey {
+export interface RedisKeyHash extends RedisKey {
     hdel(...fields: string[]): Promise<number>;
     hexist(field: string): Promise<boolean>;
     hget(field: string): Promise<string>;
@@ -68,7 +68,7 @@ interface RedisKeyHash extends RedisKey {
     hscan(cursor: string, pattern?: string, count?: number): Promise<RedisScanResult>;
 }
 
-interface RedisKeyAny extends RedisKeyString, RedisKeySet {
+export interface RedisKeyAny extends RedisKeyString, RedisKeySet {
 
 }
 
@@ -76,7 +76,7 @@ export class RedisClient implements RedisKeyAny {
     private bbClient: any;
     readonly key: string = '';
 
-    constructor(client: any, key: string) {
+    constructor(client: any, key: string = '') {
         this.bbClient = client;
         this.key = key;
     }
