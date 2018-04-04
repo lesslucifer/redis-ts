@@ -26,6 +26,9 @@ export interface RedisKey {
 export interface RedisKeyString extends RedisKey {
     get(): Promise<string>
     set(value: RedisPrimitives): Promise<void>;
+    incr(): Promise<number>;
+    incrby(value: number): Promise<number>;
+    incrbyFloat(value: number): Promise<number>;
 }
 
 export interface RedisKeySet extends RedisKey {
@@ -101,6 +104,18 @@ export class RedisClient implements RedisKeyAny {
 
     set(value: RedisPrimitives): Promise<void> {
         return this.bbClient.setAsync(this.key, value);
+    }
+
+    incr(): Promise<number> {
+        return this.bbClient.incrAsync(this.key);
+    }
+
+    incrby(val: number): Promise<number> {
+        return this.bbClient.incrByAsync(this.key, val);
+    }
+
+    incrbyFloat(val: number): Promise<number> {
+        return this.bbClient.incrAsync(this.key, val);
     }
     // #endregion
 
