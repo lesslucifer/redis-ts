@@ -80,7 +80,12 @@ export class RedisClient implements RedisKeyAny {
     readonly key: string = '';
 
     constructor(client: any, key: string = '') {
-        this.bbClient = client;
+        if (client instanceof RedisClient) {
+            this.bbClient = client.bbClient;
+        }
+        else {
+            this.bbClient = bb.promisifyAll(client, {context: client});
+        }
         this.key = key;
     }
 
@@ -90,7 +95,7 @@ export class RedisClient implements RedisKeyAny {
 
     child(path: string, sep: string = ":"): RedisKeyAny {
         const key = `${this.key}${sep}${path}`;
-        return new RedisClient(this.bbClient, key);
+        return new RedisClient(this, key);
     }
 
     del() {
