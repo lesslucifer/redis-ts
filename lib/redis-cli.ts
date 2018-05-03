@@ -2,17 +2,17 @@ import * as redis from 'redis';
 import * as bb from 'bluebird';
 import * as utils from './utils';
 
-interface ClientConfig extends redis.ClientOpts {
+export interface ClientConfig extends redis.ClientOpts {
 }
 
-type RedisPrimitives = string | number | boolean | Buffer;
+export type RedisPrimitives = string | number | boolean | Buffer;
 
-interface RedisParser<F, T> {
+export interface RedisParser<F, T> {
     (v: F): T
     (v: F): Promise<T>
 }
 
-interface RedisScanResult {
+export interface RedisScanResult {
     cursor: number;
     values: string[];
 }
@@ -20,27 +20,30 @@ interface RedisScanResult {
 interface RedisMultiKey {
     keys(pattern: string): Promise<string[]>;
     migrate(): any;
-    move(db: string): any;``
+    move(db: string): any;
 }
 
-interface RedisKey {
+export interface RedisKey {
     readonly key: string;
     child(path: string, sep?: string): RedisKeyAny;
     del(): Promise<void>;
-    dump(): Promise<Buffer>;
+    // dump(): Promise<Buffer>;
     // multikey
-    exists(): Promise<boolean>;
+    // exists(): Promise<boolean>;
     expire(seconds: number): Promise<boolean>;
-    expireAt(timestamp: number): Primise<boolean>;
+    expireAt(timestamp: number): Promise<boolean>;
     // 
 }
 
-interface RedisKeyString extends RedisKey {
+export interface RedisKeyString extends RedisKey {
     get(): Promise<string>
     set(value: RedisPrimitives): Promise<void>;
+    incr(): Promise<number>;
+    incrby(value: number): Promise<number>;
+    incrbyFloat(value: number): Promise<number>;
 }
 
-interface RedisKeySet extends RedisKey {
+export interface RedisKeySet extends RedisKey {
     sadd(...values: RedisPrimitives[]): Promise<number>;
     scard(): Promise<number>;
     sdiff(...keys: (RedisKey | string)[]): Promise<Set<string>>;
@@ -60,7 +63,7 @@ interface RedisKeySet extends RedisKey {
     sunionstore(...keys: (RedisKey | string)[]): Promise<number>;
 }
 
-interface RedisKeyHash extends RedisKey {
+export interface RedisKeyHash extends RedisKey {
     hdel(...fields: string[]): Promise<number>;
     hexist(field: string): Promise<boolean>;
     hget(field: string): Promise<string>;
@@ -105,16 +108,20 @@ interface RedisKeyGeo {
 
 }
 
-interface RedisKeyAny extends RedisKeyString, RedisKeySet, RedisKeyHash, RedisKeyList {
-
+export interface RedisKeyAny extends RedisKeyString, RedisKeySet, RedisKeyHash, RedisKeyList {
 }
 
 export class RedisClient implements RedisKeyAny {
     private bbClient: any;
     readonly key: string = '';
 
-    constructor(client: any, key: string) {
-        this.bbClient = client;
+    constructor(client: any, key: string = '') {
+        if (client instanceof RedisClient) {
+            this.bbClient = client.bbClient;
+        }
+        else {
+            this.bbClient = bb.promisifyAll(client, {context: client});
+        }
         this.key = key;
     }
 
@@ -124,7 +131,7 @@ export class RedisClient implements RedisKeyAny {
 
     child(path: string, sep: string = ":"): RedisKeyAny {
         const key = `${this.key}${sep}${path}`;
-        return new RedisClient(this.bbClient, key);
+        return new RedisClient(this, key);
     }
 
     del() {
@@ -138,6 +145,18 @@ export class RedisClient implements RedisKeyAny {
 
     set(value: RedisPrimitives): Promise<void> {
         return this.bbClient.setAsync(this.key, value);
+    }
+
+    incr(): Promise<number> {
+        return this.bbClient.incrAsync(this.key);
+    }
+
+    incrby(val: number): Promise<number> {
+        return this.bbClient.incrByAsync(this.key, val);
+    }
+
+    incrbyFloat(val: number): Promise<number> {
+        return this.bbClient.incrAsync(this.key, val);
     }
     // #endregion
 
