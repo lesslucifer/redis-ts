@@ -17,10 +17,22 @@ interface RedisScanResult {
     values: string[];
 }
 
+interface RedisMultiKey {
+    keys(pattern: string): Promise<string[]>;
+    migrate(): any;
+    move(db: string): any;``
+}
+
 interface RedisKey {
     readonly key: string;
     child(path: string, sep?: string): RedisKeyAny;
     del(): Promise<void>;
+    dump(): Promise<Buffer>;
+    // multikey
+    exists(): Promise<boolean>;
+    expire(seconds: number): Promise<boolean>;
+    expireAt(timestamp: number): Primise<boolean>;
+    // 
 }
 
 interface RedisKeyString extends RedisKey {
@@ -68,7 +80,32 @@ interface RedisKeyHash extends RedisKey {
     hscan(cursor: string, pattern?: string, count?: number): Promise<RedisScanResult>;
 }
 
-interface RedisKeyAny extends RedisKeyString, RedisKeySet {
+interface RedisKeyList extends RedisKey {
+    // multikey
+    blpop(timeout: number): Promise<string>;
+    // multikey
+    brpop(timeout: number): Promise<string>;
+    brpoplpush(destination: string, timeout: number): Promise<string>;
+    lindex(idx: number): Promise<string>;
+    linsert(prepos: 'BEFORE' | 'AFTER', pivot: RedisPrimitives, value: RedisPrimitives): Promise<number>;
+    llen(): Promise<number>;
+    lpush(...values: RedisPrimitives[]): Promise<number>;
+    lpushx(value: RedisPrimitives): Promise<number>;
+    lrange(start: number, stop: number): Promise<string[]>
+    lrem(count: number, value: RedisPrimitives): Promise<number>;
+    lset(idx: number, value: RedisPrimitives): Promise<boolean>;
+    ltrim(start: number, stop: number): Promise<boolean>;
+    lpop(): Promise<string>;
+    rpoplpush(destination: string): Promise<string>;
+    rpush(...values: RedisPrimitives[]): Promise<number>;
+    rpushx(value: RedisPrimitives): Promise<number>;
+}
+
+interface RedisKeyGeo {
+
+}
+
+interface RedisKeyAny extends RedisKeyString, RedisKeySet, RedisKeyHash, RedisKeyList {
 
 }
 
@@ -273,5 +310,72 @@ export class RedisClient implements RedisKeyAny {
         });
     }
     
+    // #endregion
+
+    // #region Lists
+    blpop(timeout: number): Promise<string> {
+        return this.bbClient.blpopAsync(this.key, timeout);
+    }
+
+    brpop(timeout: number): Promise<string> {
+        return this.bbClient.brpopAsync(this.key, timeout);
+    }
+    
+    brpoplpush(destination: string, timeout: number): Promise<string> {
+        return this.bbClient.brpoplpushAsync(this.key, destination, timeout);
+    }
+
+    lindex(idx: number): Promise<string> {
+        return this.bbClient.lindexAsync(this.key, idx);
+    }
+
+    linsert(prepos: 'BEFORE' | 'AFTER', pivot: RedisPrimitives, value: RedisPrimitives): Promise<number> {
+        return this.bbClient.linsertAsync(this.key, prepos, pivot, value);
+    }
+
+    llen(): Promise<number> {
+        return this.bbClient.llenAsync(this.key);
+    }
+
+    lpush(...values: RedisPrimitives[]): Promise<number> {
+        return this.bbClient.lpushAsync(this.key, ...values);
+    }
+
+    lpushx(value: RedisPrimitives): Promise<number> {
+        return this.bbClient.lpushxAsync(this.key, value);   
+    }
+
+    lrange(start: number, stop: number): Promise<string[]> {
+        return this.bbClient.lrangeAsync(this.key, start, stop);
+    }
+
+    lrem(count: number, value: RedisPrimitives): Promise<number> {
+        return this.bbClient.lremAsync(this.key, count, value);
+    }
+
+    lset(idx: number, value: RedisPrimitives): Promise<boolean> {
+        return this.bbClient.lsetAsync(this.key, idx, value);
+    }
+
+    ltrim(start: number, stop: number): Promise<boolean> {
+        return this.bbClient.ltrimAsync(this.key, start, stop);
+    }
+
+    lpop(): Promise<string> {
+        return this.bbClient.lpopAsync(this.key);
+    }
+
+    rpoplpush(destination: string): Promise<string> {
+        return this.bbClient.rpoplpushAsync(this.key, destination);
+    }
+
+    rpush(...values: RedisPrimitives[]): Promise<number> {
+        return this.bbClient.rpushAsync(this.key, ...values);
+    }
+
+    rpushx(value: RedisPrimitives): Promise<number> {
+        return this.bbClient.rpushx(this.key, value);
+    }
+
     // #endregion
 }
