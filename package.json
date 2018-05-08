@@ -1,6 +1,6 @@
 {
   "name": "redis-ts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Typescript Redis Client",
   "main": "dist/index.js",
   "types" : "dist/index.d.ts",
@@ -21,6 +21,7 @@
   "bugs": {
     "url": "https://github.com/lesslucifer/redis-ts/issues"
   },
+  "bundleDependencies": ["redis"],
   "homepage": "https://github.com/lesslucifer/redis-ts#readme",
   "dependencies": {
     "redis": "^2.7.1"
