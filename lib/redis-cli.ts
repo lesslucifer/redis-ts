@@ -27,12 +27,12 @@ export interface RedisKey {
     readonly key: string;
     child(path: string, sep?: string): RedisKeyAny;
     del(): Promise<void>;
-    // dump(): Promise<Buffer>;
+    dump(): Promise<Buffer>;
     // multikey
-    // exists(): Promise<boolean>;
+    exists(): Promise<boolean>;
     expire(seconds: number): Promise<boolean>;
     expireAt(timestamp: number): Promise<boolean>;
-    // 
+    // type
 }
 
 export interface RedisKeyString extends RedisKey {
@@ -119,8 +119,12 @@ export class RedisClient implements RedisKeyAny {
         if (client instanceof RedisClient) {
             this.bbClient = client.bbClient;
         }
-        else {
+        else if (client instanceof redis.RedisClient) {
             this.bbClient = bb.promisifyAll(client, {context: client});
+        }
+        else {
+            const _client = redis.createClient(client);
+            this.bbClient = bb.promisifyAll(_client, {context: _client});
         }
         this.key = key;
     }
@@ -138,12 +142,20 @@ export class RedisClient implements RedisKeyAny {
         return this.bbClient.delAsync(this.key);
     }
 
+    dump(): Promise<Buffer> {
+        return this.bbClient.dumpAsync(this.key);
+    }
+
+    exists(): Promise<boolean> {
+        return this.bbClient.existsAsync(this.key).then(utils.asBoolean);
+    }
+
     expire(seconds: number): Promise<boolean> {
-        return this.bbClient.expireAsync(seconds);
+        return this.bbClient.expireAsync(this.key, seconds).then(utils.asBoolean);
     }
 
     expireAt(timestamp: number): Promise<boolean> {
-        return this.bbClient.expireAtAsync(timestamp);
+        return this.bbClient.expireAtAsync(this.key, timestamp).then(utils.asBoolean);
     }
 
     // #region Strings
