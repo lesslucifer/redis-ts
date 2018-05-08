@@ -83,7 +83,7 @@ export interface RedisKeyHash extends RedisKey {
     hscan(cursor: string, pattern?: string, count?: number): Promise<RedisScanResult>;
 }
 
-interface RedisKeyList extends RedisKey {
+export interface RedisKeyList extends RedisKey {
     // multikey
     blpop(timeout: number): Promise<string>;
     // multikey
@@ -104,7 +104,7 @@ interface RedisKeyList extends RedisKey {
     rpushx(value: RedisPrimitives): Promise<number>;
 }
 
-interface RedisKeyGeo {
+export interface RedisKeyGeo {
 
 }
 
@@ -136,6 +136,14 @@ export class RedisClient implements RedisKeyAny {
 
     del() {
         return this.bbClient.delAsync(this.key);
+    }
+
+    expire(seconds: number): Promise<boolean> {
+        return this.bbClient.expireAsync(seconds);
+    }
+
+    expireAt(timestamp: number): Promise<boolean> {
+        return this.bbClient.expireAtAsync(timestamp);
     }
 
     // #region Strings
