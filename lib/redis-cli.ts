@@ -134,7 +134,7 @@ export class RedisClient implements RedisKeyAny {
     }
 
     child(path: string, sep: string = ":"): RedisKeyAny {
-        const key = `${this.key}${sep}${path}`;
+        const key = this.key ? `${this.key}${sep}${path}` : path;
         return new RedisClient(this, key);
     }
 
@@ -214,7 +214,7 @@ export class RedisClient implements RedisKeyAny {
     }
 
     smove(destination: (RedisKey | string), member: RedisPrimitives): Promise<boolean> {
-        return this.bbClient.smoveAsync(destination, member).then(utils.asBoolean);
+        return this.bbClient.smoveAsync(this.key, destination, member).then(utils.asBoolean);
     }
 
     spop(count?: number): Promise<string[]> {
@@ -226,7 +226,7 @@ export class RedisClient implements RedisKeyAny {
     }
 
     srandmember(count?: number): Promise<string[]> {
-        return count ? this.bbClient.srandmemberAsync(this.key, count) : this.bbClient.srandmemberAsync(this.key, count);
+        return count ? this.bbClient.srandmemberAsync(this.key, count) : this.bbClient.srandmemberAsync(this.key);
     }
 
     srandOneMember(): Promise<string> {
