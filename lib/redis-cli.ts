@@ -217,20 +217,20 @@ export class RedisClient implements RedisKeyAny {
         return this.bbClient.smoveAsync(this.key, destination, member).then(utils.asBoolean);
     }
 
-    spop(count?: number): Promise<string[]> {
-        return count ? this.bbClient.spopAsync(this.key, count) : this.bbClient.spopAsync(this.key);
+    spop(count: number = 1): Promise<string[]> {
+        return this.bbClient.spopAsync(this.key, count)
     }
 
     spopOne(): Promise<string> {
-        return this.spop().then(utils.first);
+        return this.bbClient.spopAsync(this.key);
     }
 
-    srandmember(count?: number): Promise<string[]> {
-        return count ? this.bbClient.srandmemberAsync(this.key, count) : this.bbClient.srandmemberAsync(this.key);
+    srandmember(count: number = 1): Promise<string[]> {
+        return this.bbClient.srandmemberAsync(this.key, count);
     }
 
     srandOneMember(): Promise<string> {
-        return this.srandmember().then(utils.first);
+        return this.bbClient.srandmemberAsync(this.key);
     }
 
     srem(...members: RedisPrimitives[]): Promise<number> {
