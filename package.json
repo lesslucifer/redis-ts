@@ -1,9 +1,9 @@
 {
   "name": "redis-ts",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Typescript Redis Client",
   "main": "dist/index.js",
-  "types" : "dist/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "test",
     "build": "tsc"
@@ -21,7 +21,10 @@
   "bugs": {
     "url": "https://github.com/lesslucifer/redis-ts/issues"
   },
-  "bundleDependencies": ["redis", "bluebird"],
+  "bundleDependencies": [
+    "redis",
+    "bluebird"
+  ],
   "homepage": "https://github.com/lesslucifer/redis-ts#readme",
   "dependencies": {
     "redis": "^2.7.1",
